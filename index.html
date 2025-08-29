@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Humanoid Arm Project - Home</title>
+  <meta name="description" content="Homepage for the Web-Controlled Robotic Arm project.">
+  <meta name="author" content="Your Name"> <style>
+    /* --- Basic Setup & Theme --- */
+    :root {
+      --bg: #111827;
+      --card: #1f2937;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --accent-dark: #0ea5e9;
+      --border: #374151;
+    }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.2s ease, background-color 0.2s ease;
+    }
+    a:hover {
+      color: var(--accent-dark);
+    }
+    img {
+      max-width: 100%;
+      display: block;
+      border-radius: 12px;
+    }
+
+    /* --- Navigation --- */
+    .header {
+      background-color: rgba(31, 41, 55, 0.7);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-brand {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center; /* Vertically align items */
+    }
+    /* NEW STYLES for Login/Signup */
+    .nav-auth {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .btn-secondary {
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+    }
+    .btn-secondary:hover {
+      background-color: var(--card);
+      color: var(--text);
+    }
+    .btn {
+      display: inline-block;
+      background-color: var(--accent);
+      color: var(--bg);
+      padding: 0.8rem 1.8rem;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+    .btn:hover {
+      background-color: var(--accent-dark);
+      color: var(--bg);
+    }
+    
+    /* --- Hero Section --- */
+    .hero {
+      text-align: center;
+      padding: 6rem 0;
+      background-image: linear-gradient(rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.8)), url('https://images.unsplash.com/photo-1612185228198-6a73a334815a?q=80&w=1800'); /* EDIT: Background image */
+      background-size: cover;
+      background-position: center;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      margin: 0 0 1rem;
+      line-height: 1.2;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+    .hero .btn {
+      font-size: 1.1rem;
+    }
+    .section {
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 3rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+    .grid-2-cols {
+      grid-template-columns: repeat(2, 1fr);
+      align-items: center;
+    }
+    .grid-3-cols {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .card {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .card h3 {
+      margin: 1rem 0 0.5rem;
+    }
+    .card p {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* --- Footer --- */
+    .footer {
+      padding: 2rem 0;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 900px) { /* Adjusted breakpoint for better response */
+      .nav-links, .nav-auth { display: none; } /* Simplifies mobile nav for now */
+      .grid-2-cols, .grid-3-cols { grid-template-columns: 1fr; }
+      .hero { padding: 4rem 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <div class="nav-brand">Humanoid Arm Project</div>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="build.html">The Build</a>
+          <span style="border-left: 1px solid var(--border); margin: 0 0.5rem;"></span>
+          <a href="manual.html">Manual Control</a>
+          <a href="sequences.html">Sequences</a>
+          <a href="history.html">History</a>
+          <a href="temperature.html">Temperature</a>
+        </div>
+        <div class="nav-auth">
+          <a href="login.html" class="btn-secondary">Login</a>
+          <a href="signup.html" class="btn">Sign Up</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Building a Web-Controlled Robotic Arm</h1>
+        <p>An open-source journey from hardware assembly to a custom browser-based control interface.</p>
+        <a href="build.html" class="btn">Explore the Full Build</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid grid-2-cols">
+        <div>
+          <img src="https://images.unsplash.com/photo-1581091218713-4c8b62fe0d37?q=80&w=1200" alt="Robotic arm wiring close-up">
+        </div>
+        <div>
+          <h2>About project</h2>
+          <p>This project documents the entire process of building a 4-axis robotic arm from scratch. It covers the mechanical build, the electronics, and the creation of a multi-page web dashboard to monitor and control the arm's every move. All files, from the Arduino sketch to this website's code, are open-source.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Explore the Dashboard</h2>
+        <div class="grid grid-3-cols">
+          <div class="card">
+            <h3>Manual Control</h3>
+            <p>Take direct, real-time control of the arm using a live slider interface.</p>
+            <a href="manual.html" class="btn">Go to Manual Control</a>
+          </div>
+          <div class="card">
+            <h3>Built-in Movements</h3>
+            <p>Trigger pre-programmed sequences and watch the arm perform automated tasks.</p>
+            <a href="sequences.html" class="btn">View Sequences</a>
+          </div>
+          <div class="card">
+            <h3>History & Data</h3>
+            <p>View live sensor data and historical logs from the arm's operations.</p>
+            <a href="history.html" class="btn">See Live Data</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; sagnik. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
+```

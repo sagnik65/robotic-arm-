@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temperature Monitor - Humanoid Arm Project</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #111827; --card: #1f2937; --text: #f9fafb; --muted: #9ca3af; --accent: #38bdf8; --border: #374151; --success: #22c55e;
+    }
+    body { margin: 0; background-color: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+    a { color: var(--accent); text-decoration: none; }
+    .header { background-color: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 10; }
+    .nav { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .nav-brand { font-weight: 700; font-size: 1.2rem; }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .page-header { padding: 4rem 0; text-align: center; border-bottom: 1px solid var(--border); }
+    .page-header h1 { font-size: 3rem; margin: 0; }
+    .btn { display: inline-block; background-color: var(--accent); color: var(--bg); padding: 0.8rem 1.8rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
+    .section { padding: 3rem 0; }
+    .card { background-color: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; text-align: center; }
+    .status-area { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+    .status-indicator { width: 12px; height: 12px; border-radius: 50%; background-color: var(--muted); }
+    .status-indicator.connected { background-color: var(--success); }
+    .temp-display { font-size: 5rem; font-weight: 700; line-height: 1; margin: 1rem 0; }
+    .chart-container { margin-top: 2rem; }
+    .footer { padding: 2rem 0; text-align: center; color: var(--muted); margin-top: 4rem; border-top: 1px solid var(--border); }
+    @media (max-width: 768px) { .nav-links { display: none; } }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <div class="nav-brand">Humanoid Arm Project</div>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="manual.html">Manual Control</a>
+          <a href="sequences.html">Built-in Movements</a>
+          <a href="history.html">History & Data</a>
+          <a href="build.html">The Build</a>
+          <a href="temperature.html">Temperature</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <h1>Temperature Monitor</h1>
+    </header>
+
+    <section class="section">
+      <div class="card">
+        <div class="status-area">
+          <button id="connectBtn" class="btn">Connect to Arm</button>
+          <div id="connectionIndicator" class="status-indicator"></div>
+          <span id="connectionStatus">Disconnected</span>
+        </div>
+
+        <div>
+          <p class="muted">REAL-TIME SENSOR READING</p>
+          <h2 class="temp-display"><span id="tempValue">--</span> °C</h2>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="tempChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="footer">
+    <p>&copy; 2025 Your Name. All Rights Reserved.</p>
+  </footer>
+
+  <script>
+    // --- UI Element References ---
+    const connectBtn = document.getElementById('connectBtn');
+    const connectionIndicator = document.getElementById('connectionIndicator');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const tempValue = document.getElementById('tempValue');
+    const ctx = document.getElementById('tempChart').getContext('2d');
+
+    let port, reader;
+    let chart;
+
+    // --- Chart.js Setup ---
+    function initializeChart() {
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Temperature (°C)',
+            data: [],
+            borderColor: 'rgba(56, 189, 248, 1)',
+            backgroundColor: 'rgba(56, 189, 248, 0.2)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: false },
+            x: { ticks: { color: 'rgba(156, 163, 175, 1)' } }
+          },
+          plugins: { legend: { labels: { color: 'rgba(249, 250, 251, 1)' } } }
+        }
+      });
+    }
+    
+    function addDataToChart(label, data) {
+        chart.data.labels.push(label);
+        chart.data.datasets[0].data.push(data);
+        // Limit the number of data points to keep the chart clean
+        if (chart.data.labels.length > 20) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+        chart.update();
+    }
+
+    // --- Web Serial Logic ---
+    connectBtn.addEventListener('click', async () => {
+      if (port) {
+        if (reader) reader.cancel();
+        await port.close();
+        port = reader = undefined;
+        connectBtn.textContent = 'Connect to Arm';
+        connectionIndicator.classList.remove('connected');
+        connectionStatus.textContent = 'Disconnected';
+        return;
+      }
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+        const textDecoder = new TextDecoderStream();
+        port.readable.pipeTo(textDecoder.writable);
+        reader = textDecoder.readable.getReader();
+        connectBtn.textContent = 'Disconnect';
+        connectionIndicator.classList.add('connected');
+        connectionStatus.textContent = 'Connected';
+        listenForData();
+      } catch (error) {
+        console.error('Connection Error:', error);
+      }
+    });
+
+    async function listenForData() {
+      while (port && reader) {
+        try {
+          const { value, done } = await reader.read();
+          if (done) break;
+          
+          const message = value.trim();
+          if (message.startsWith('TEMP:')) {
+            const temp = message.substring(5);
+            const tempNum = parseFloat(temp).toFixed(1);
+            tempValue.textContent = tempNum; // Update the big display
+            
+            const time = new Date().toLocaleTimeString();
+            addDataToChart(time, tempNum); // Add data to the chart
+          }
+        } catch (error) {
+          console.error('Read error:', error);
+          break;
+        }
+      }
+      if (reader) reader.releaseLock();
+    }
+
+    // Initialize the chart when the page loads
+    window.onload = initializeChart;
+  </script>
+</body>
+</html>

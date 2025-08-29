@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automated Sequences - Humanoid Arm Project</title>
+  <meta name="description" content="Run pre-programmed, built-in movements on the Web-Controlled Robotic Arm.">
+  <meta name="author" content="Your Name"> <style>
+    :root {
+      --bg: #111827; --card: #1f2937; --text: #f9fafb; --muted: #9ca3af; --accent: #38bdf8; --border: #374151; --success: #22c55e;
+    }
+    body { margin: 0; background-color: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+    a { color: var(--accent); text-decoration: none; }
+    .header { background-color: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 10; }
+    .nav { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .nav-brand { font-weight: 700; font-size: 1.2rem; }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .page-header { padding: 4rem 0; text-align: center; border-bottom: 1px solid var(--border); }
+    .page-header h1 { font-size: 3rem; margin: 0; }
+    .page-header p { color: var(--muted); max-width: 600px; margin: 1rem auto 0; }
+    .btn { display: inline-block; background-color: var(--card); border: 1px solid var(--border); color: var(--text); padding: 0.8rem 1.8rem; border-radius: 12px; font-weight: 700; cursor: pointer; transition: border-color 0.2s ease, color 0.2s ease; }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.connect-btn { background-color: var(--accent); color: var(--bg); }
+    .sequences-section { padding: 3rem 0; }
+    .card { background-color: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+    .connection-area { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+    .status-indicator { width: 12px; height: 12px; border-radius: 50%; background-color: var(--muted); }
+    .status-indicator.connected { background-color: var(--success); }
+    .sequences-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .footer { padding: 2rem 0; text-align: center; color: var(--muted); margin-top: 4rem; border-top: 1px solid var(--border); }
+    @media (max-width: 768px) { .nav-links { display: none; } }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <div class="nav-brand">Humanoid Arm Project</div>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="manual.html">Manual Control</a>
+          <a href="sequences.html">Built-in Movements</a>
+          <a href="history.html">History & Data</a>
+          <a href="build.html">The Build</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <h1>Automated Sequences</h1>
+      <p>Run pre-programmed routines stored on the Arduino. Connect to the arm, then click a button to begin a sequence.</p>
+    </header>
+
+    <section class="sequences-section">
+      <div class="card">
+        <div class="connection-area">
+          <button id="connectBtn" class="btn connect-btn">Connect to Arm</button>
+          <div id="connectionIndicator" class="status-indicator"></div>
+          <span id="connectionStatus">Disconnected</span>
+        </div>
+        <hr style="border-color: var(--border); margin: 2rem 0;">
+        
+        <div class="sequences-grid">
+          <button class="btn sequence-btn" data-sequence="RUN1">Run: Wave Hello</button>
+          <button class="btn sequence-btn" data-sequence="RUN2">Run: Pick and Place</button>
+          <button class="btn sequence-btn" data-sequence="RUN3">Run: Dance</button>
+          <button class="btn sequence-btn" data-sequence="RUN0">EMERGENCY STOP</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; sagnik. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    const connectBtn = document.getElementById('connectBtn');
+    const connectionIndicator = document.getElementById('connectionIndicator');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const sequenceButtons = document.querySelectorAll('.sequence-btn');
+
+    let port, writer;
+
+    connectBtn.addEventListener('click', async () => {
+      if (port) {
+        if (writer) await writer.close();
+        await port.close();
+        port = writer = undefined;
+        connectBtn.textContent = 'Connect to Arm';
+        connectionIndicator.classList.remove('connected');
+        connectionStatus.textContent = 'Disconnected';
+        return;
+      }
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+        const textEncoder = new TextEncoderStream();
+        textEncoder.readable.pipeTo(port.writable);
+        writer = textEncoder.writable.getWriter();
+        connectBtn.textContent = 'Disconnect';
+        connectionIndicator.classList.add('connected');
+        connectionStatus.textContent = 'Connected';
+      } catch (error) {
+        console.error('Connection Error:', error);
+      }
+    });
+
+    // Add a click listener to all sequence buttons
+    sequenceButtons.forEach(button => {
+      button.addEventListener('click', async () => {
+        if (!writer) {
+          alert('Please connect to the arm first.');
+          return;
+        }
+        const command = button.dataset.sequence + '\n';
+        console.log(`Sending command: ${command}`);
+        await writer.write(command);
+      });
+    });
+  </script>
+</body>
+</html>
