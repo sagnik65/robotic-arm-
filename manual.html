@@ -2,7 +2,264 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Control - Humanoid Arm Project</title>
+  <style>
+    :root {
+      --bg: #111827; --card: #1f2937; --text: #f9fafb; --muted: #9ca3af; --accent: #38bdf8; --border: #374151; --success: #22c55e;
+    }
+    body { margin: 0; background-color: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+    a { color: var(--accent); text-decoration: none; }
+    .header { background-color: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 10; }
+    .nav { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .nav-brand { font-weight: 700; font-size: 1.2rem; }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .page-header { padding: 4rem 0; text-align: center; border-bottom: 1px solid var(--border); }
+    .page-header h1 { font-size: 3rem; margin: 0; }
+    .page-header p { color: var(--muted); max-width: 600px; margin: 1rem auto 0; }
+    .btn { display: inline-block; background-color: var(--accent); color: var(--bg); padding: 0.8rem 1.8rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s ease; }
+    .btn.secondary { background-color: var(--card); border: 1px solid var(--border); color: var(--text); }
+    .btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .main-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; padding: 3rem 0; }
+    .card { background-color: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+    .connection-area { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .status-indicator { width: 12px; height: 12px; border-radius: 50%; background-color: var(--muted); }
+    .status-indicator.connected { background-color: var(--success); }
+    .slider-group { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .slider-group label { width: 100px; font-weight: 600; }
+    .slider-group input[type="range"] { flex-grow: 1; }
+    .slider-group .value-display { width: 50px; text-align: right; font-family: monospace; font-size: 1.1rem; }
+    .output-item { margin-bottom: 1.5rem; }
+    .temp-display { font-size: 2.5rem; font-weight: 700; color: var(--text); margin: 0; }
+    .live-feed-box img { width: 100%; aspect-ratio: 4 / 3; background-color: #000; border: 1px solid var(--border); border-radius: 8px; object-fit: cover; }
+    .log-box { background-color: #000; border: 1px solid var(--border); border-radius: 8px; height: 180px; overflow-y: scroll; padding: 1rem; font-family: monospace; font-size: 0.9rem; color: var(--muted); white-space: pre-wrap; margin-top: 1rem; }
+    .footer { padding: 2rem 0; text-align: center; color: var(--muted); margin-top: 4rem; border-top: 1px solid var(--border); }
+    @media (max-width: 900px) { .nav-links { display: none; } .main-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <div class="nav-brand">Humanoid Arm Project</div>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="manual.html">Manual Control</a>
+          <a href="sequences.html">Built-in Movements</a>
+          <a href="history.html">History & Data</a>
+          <a href="build.html">The Build</a>
+          <a href="temperature.html">Temperature</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <h1>Manual Arm Control</h1>
+      <p>Connect to the arm and use the sliders for direct, real-time control of each joint.</p>
+    </header>
+
+    <div class="main-grid">
+      <div class="controls-column">
+        <div class="card">
+          <div class="connection-area">
+            <button id="connectBtn" class="btn">Connect to Arm</button>
+            <button id="resetBtn" class="btn secondary">Reset Position</button>
+            <div id="connectionIndicator" class="status-indicator"></div>
+            <span id="connectionStatus">Disconnected</span>
+          </div>
+          <hr style="border-color: var(--border); margin: 2rem 0;">
+          <div class="slider-group">
+            <label for="speedSlider">Move Speed</label>
+            <input type="range" id="speedSlider" min="1" max="20" value="10">
+            <span id="speedValue" class="value-display">10</span>
+          </div>
+          <hr style="border-color: var(--border); margin: 1rem 0 2rem;">
+          <div class="slider-group">
+            <label for="baseSlider">Base (180°)</label>
+            <input type="range" id="baseSlider" min="0" max="180" value="90">
+            <span id="baseValue" class="value-display">90°</span>
+          </div>
+          <div class="slider-group">
+              <label for="shoulderSlider">Shoulder (180°)</label>
+              <input type="range" id="shoulderSlider" min="0" max="180" value="90">
+              <span id="shoulderValue" class="value-display">90°</span>
+          </div>
+          <div class="slider-group">
+              <label for="elbowSlider">Elbow (180°)</label>
+              <input type="range" id="elbowSlider" min="0" max="180" value="90">
+              <span id="elbowValue" class="value-display">90°</span>
+          </div>
+          <hr style="border-color: var(--border); margin: 2rem 0;">
+          <div class="slider-group">
+              <label for="rotator1Slider">Rotator 1 (360°)</label>
+              <input type="range" id="rotator1Slider" min="0" max="180" value="90">
+              <span id="rotator1Value" class="value-display">STOP</span>
+          </div>
+          <div class="slider-group">
+              <label for="rotator2Slider">Rotator 2 (360°)</label>
+              <input type="range" id="rotator2Slider" min="0" max="180" value="90">
+              <span id="rotator2Value" class="value-display">STOP</span>
+          </div>
+        </div>
+      </div>
+      <div class="outputs-column">
+        <div class="card">
+            <h3>Outputs</h3>
+            <div class="output-item">
+              <h4>Temperature</h4>
+              <p class="temp-display"><span id="tempValue">--</span> °C</p>
+            </div>
+            <div class="output-item live-feed-box">
+              <h4>Live Feed</h4>
+              <img id="liveFeed" src="" alt="Live camera feed is offline.">
+            </div>
+            <div class="output-item log-container">
+              <h4>Output Log</h4>
+              <div id="logBox" class="log-box"></div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <p>&copy; 2025 Your Name. All Rights Reserved.</p>
+  </footer>
+
+  <script>
+    const connectBtn = document.getElementById('connectBtn');
+    const connectionIndicator = document.getElementById('connectionIndicator');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const logBox = document.getElementById('logBox');
+    const liveFeed = document.getElementById('liveFeed');
+    const tempValue = document.getElementById('tempValue');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = document.getElementById('speedValue');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const sliders = {
+      B: { input: document.getElementById('baseSlider'), display: document.getElementById('baseValue'), type: 'angle' },
+      S: { input: document.getElementById('shoulderSlider'), display: document.getElementById('shoulderValue'), type: 'angle' },
+      E: { input: document.getElementById('elbowSlider'), display: document.getElementById('elbowValue'), type: 'angle' },
+      R: { input: document.getElementById('rotator1Slider'), display: document.getElementById('rotator1Value'), type: 'speed' },
+      T: { input: document.getElementById('rotator2Slider'), display: document.getElementById('rotator2Value'), type: 'speed' }
+    };
+
+    let port, writer, reader;
+
+    function addToLog(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      logBox.innerHTML += `[${timestamp}] ${message}\n`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    connectBtn.addEventListener('click', async () => {
+      if (port) {
+        if (reader) reader.cancel().catch(() => {}); // Catch error if already closed
+        if (writer) await writer.close().catch(() => {});
+        await port.close().catch(() => {});
+        port = writer = reader = undefined;
+        connectBtn.textContent = 'Connect to Arm';
+        connectionIndicator.classList.remove('connected');
+        connectionStatus.textContent = 'Disconnected';
+        liveFeed.src = "";
+        addToLog('Disconnected.');
+        return;
+      }
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+        const textEncoder = new TextEncoderStream();
+        const writableStreamClosed = textEncoder.readable.pipeTo(port.writable);
+        writer = textEncoder.writable.getWriter();
+        const textDecoder = new TextDecoderStream();
+        const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+        reader = textDecoder.readable.getReader();
+        connectBtn.textContent = 'Disconnect';
+        connectionIndicator.classList.add('connected');
+        connectionStatus.textContent = 'Connected';
+        liveFeed.src = "http://192.168.1.10:8080/stream"; // Example URL
+        addToLog('Connection established.');
+        listenForData();
+      } catch (error) {
+        addToLog(`Connection Error: ${error.message}`);
+      }
+    });
+
+    async function listenForData() {
+      while (port && port.readable && reader) {
+        try {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const message = value.trim();
+          if (message) {
+            addToLog(`Received: ${message}`);
+            if (message.startsWith('TEMP:')) {
+              const temp = message.substring(5);
+              tempValue.textContent = parseFloat(temp).toFixed(1);
+            }
+          }
+        } catch (error) {
+          addToLog(`Read error: ${error.message}`);
+          break;
+        }
+      }
+    }
+
+    speedSlider.addEventListener('input', async (e) => {
+        const speed = e.target.value;
+        speedValue.textContent = speed;
+        if (writer) {
+            const command = `V${speed}\n`;
+            await writer.write(command);
+            addToLog(`Sent: ${command.trim()}`);
+        }
+    });
+
+    resetBtn.addEventListener('click', async () => {
+        if (writer) {
+            const command = `RESET\n`;
+            await writer.write(command);
+            addToLog(`Sent: ${command.trim()}`);
+        } else {
+            alert('Connect to the arm first!');
+        }
+    });
+
+    function updateSpeedDisplay(value, display) {
+      const val = parseInt(value, 10);
+      if (val > 95) display.textContent = `FWD ${Math.round(((val - 90) / 90) * 100)}%`;
+      else if (val < 85) display.textContent = `REV ${Math.round(((90 - val) / 90) * 100)}%`;
+      else display.textContent = 'STOP';
+    }
+
+    async function handleSliderChange(joint, value) {
+      const slider = sliders[joint];
+      if (slider.type === 'angle') {
+        slider.display.textContent = `${value}°`;
+      } else {
+        updateSpeedDisplay(value, slider.display);
+      }
+      if (writer) {
+        const command = `${joint}${value}\n`;
+        await writer.write(command);
+        addToLog(`Sent: ${command.trim()}`);
+      }
+    }
+
+    for (const joint in sliders) {
+      sliders[joint].input.addEventListener('input', (e) => handleSliderChange(joint, e.target.value));
+    }
+  </script>
+</body>
+</html>
   <title>Manual Control - Humanoid Arm Project</title>
   <style>
     :root {
@@ -178,3 +435,4 @@
   </script>
 </body>
 </html>
+
